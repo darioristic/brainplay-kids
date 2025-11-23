@@ -9,9 +9,10 @@ const updateFamilySchema = z.object({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const auth = getAuthFromRequest(request);
     if (!auth) {
       return NextResponse.json(
@@ -31,7 +32,7 @@ export async function PUT(
     // Verify family belongs to user and tenant
     const family = await db.family.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: auth.userId,
         tenantId,
       },
@@ -48,7 +49,7 @@ export async function PUT(
     const validated = updateFamilySchema.parse(body);
 
     const updated = await db.family.update({
-      where: { id: params.id },
+      where: { id },
       data: validated,
     });
 

@@ -17,6 +17,10 @@ export default function ParentLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  if (!params) {
+    return <div>Loading...</div>;
+  }
+
   const subdomain = params.subdomain as string;
 
   const handleSubmit = async (e: React.FormEvent) => {

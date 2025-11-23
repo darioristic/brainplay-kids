@@ -12,11 +12,12 @@ const updateTenantSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const tenant = await db.tenant.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: { families: true },
@@ -43,9 +44,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Check auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -69,7 +71,7 @@ export async function PUT(
     const validated = updateTenantSchema.parse(body);
 
     const tenant = await db.tenant.update({
-      where: { id: params.id },
+      where: { id },
       data: validated,
     });
 
@@ -95,9 +97,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Check auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -118,7 +121,7 @@ export async function DELETE(
     }
 
     const tenant = await db.tenant.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!tenant) {
@@ -130,7 +133,7 @@ export async function DELETE(
 
     // Soft delete
     await db.tenant.update({
-      where: { id: params.id },
+      where: { id },
       data: { active: false },
     });
 

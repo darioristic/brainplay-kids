@@ -15,6 +15,10 @@ export default function ChildDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  if (!params) {
+    return <div>Loading...</div>;
+  }
+
   useEffect(() => {
     fetchChildData();
     // eslint-disable-next-line react-hooks/exhaustive-deps

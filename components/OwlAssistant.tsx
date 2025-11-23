@@ -141,7 +141,7 @@ const OwlAssistant: React.FC<OwlAssistantProps> = ({ onTranscript, ageGroup = Ag
                 onTranscript?.(message.serverContent.inputTranscription.text, 'user');
              }
 
-             const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+              const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
              if (base64Audio && outputAudioContextRef.current) {
                setIsSpeaking(true);
                const ctx = outputAudioContextRef.current;

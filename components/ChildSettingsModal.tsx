@@ -50,7 +50,7 @@ export const ChildSettingsModal: React.FC<ChildSettingsModalProps> = ({
       const urlMatch = child.avatarUrl.match(/seed=([^&]+)/);
       setAvatarSeed(urlMatch ? urlMatch[1] : AVATAR_SEEDS[0]);
       setBuddy(child.buddy || "");
-      setPreferredDifficulty(child.preferredDifficulty || "");
+      setPreferredDifficulty((child.preferredDifficulty as Difficulty) || "");
       setThemePreference(child.themePreference || "");
       setError(null);
       setSuccess(false);

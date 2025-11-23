@@ -23,6 +23,12 @@ export enum GameCategory {
   LANGUAGE = 'LANGUAGE'
 }
 
+export enum Difficulty {
+  Easy = 'Easy',
+  Medium = 'Medium',
+  Hard = 'Hard'
+}
+
 export interface GameModule {
   id: string;
   title: string;

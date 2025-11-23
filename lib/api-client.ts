@@ -10,6 +10,26 @@ const getBaseURL = () => {
   return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 };
 
+// Helper to get tenant ID from auth store or localStorage
+const getTenantId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  
+  // Try to get from auth store (if available)
+  try {
+    const authStorage = localStorage.getItem('auth-storage');
+    if (authStorage) {
+      const auth = JSON.parse(authStorage);
+      if (auth?.state?.tenant?.id) {
+        return auth.state.tenant.id;
+      }
+    }
+  } catch (e) {
+    // Ignore parse errors
+  }
+  
+  return null;
+};
+
 class ApiClient {
   private client: AxiosInstance;
 
@@ -21,13 +41,19 @@ class ApiClient {
       },
     });
 
-    // Request interceptor for JWT token
+    // Request interceptor for JWT token and tenant ID
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('accessToken');
           if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
+          }
+          
+          // Add tenant ID header if available
+          const tenantId = getTenantId();
+          if (tenantId && config.headers) {
+            config.headers['x-tenant-id'] = tenantId;
           }
         }
         return config;

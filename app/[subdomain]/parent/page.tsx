@@ -33,6 +33,10 @@ export default function ParentDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  if (!params) {
+    return <div>Loading...</div>;
+  }
+
   useEffect(() => {
     // Check if user is authenticated
     if (!isAuthenticated && !accessToken) {
@@ -51,6 +55,8 @@ export default function ParentDashboardPage() {
   const fetchData = async () => {
     try {
       setError(null);
+      setLoading(true);
+      
       const [childrenRes, familyRes] = await Promise.all([
         apiClient.get("/api/children"),
         apiClient.get("/api/families"),
@@ -63,14 +69,43 @@ export default function ParentDashboardPage() {
       if (family?.id) {
         setFamilyId(family.id);
         setFamilyName(family.name || "Family");
-        const statsRes = await apiClient.get(`/api/families/${family.id}/stats`);
-        setFamilyStats(statsRes.data.stats);
+        
+        try {
+          const statsRes = await apiClient.get(`/api/families/${family.id}/stats`);
+          setFamilyStats(statsRes.data.stats);
+        } catch (statsErr: any) {
+          console.error("Failed to fetch family stats:", statsErr);
+          // Don't fail the whole page if stats fail, just log it
+          setFamilyStats({
+            totalPoints: 0,
+            totalSessions: 0,
+            activeChildren: children.length,
+            weeklySessions: 0,
+            children: children.map((child: ChildProfile) => ({
+              id: child.id,
+              name: child.name,
+              points: child.points || 0,
+              progress: 0,
+            })),
+          });
+        }
+      } else {
+        throw new Error("Family not found");
       }
     } catch (err: any) {
       console.error("Failed to fetch data:", err);
-      setError(
-        err.message || "Failed to load dashboard data. Please try again."
-      );
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+      
+      let errorMessage = "Failed to load dashboard data. Please try again.";
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

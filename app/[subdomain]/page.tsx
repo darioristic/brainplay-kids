@@ -14,6 +14,10 @@ export default function FamilyPortal() {
   const [loading, setLoading] = useState(true);
   const [familyName, setFamilyName] = useState<string>('Family');
 
+  if (!params) {
+    return <div>Loading...</div>;
+  }
+
   useEffect(() => {
     fetchData();
   }, []);

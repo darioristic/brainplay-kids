@@ -23,6 +23,10 @@ export default function ImageGeneratorPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  if (!params) {
+    return <div>Loading...</div>;
+  }
+
   const childId = params.childId as string;
   const subdomain = params.subdomain as string;
 

@@ -4,9 +4,10 @@ import { getAuthFromRequest, getTenantIdFromRequest } from '@/lib/middleware-aut
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const auth = getAuthFromRequest(request);
     if (!auth) {
       return NextResponse.json(
@@ -26,7 +27,7 @@ export async function GET(
     // Verify family belongs to user and tenant
     const family = await db.family.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: auth.userId,
         tenantId,
       },

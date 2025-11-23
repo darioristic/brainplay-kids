@@ -15,9 +15,10 @@ const updateChildSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const tenantId = getTenantIdFromRequest(request);
     if (!tenantId) {
       return NextResponse.json(
@@ -28,7 +29,7 @@ export async function GET(
 
     const child = await db.child.findFirst({
       where: {
-        id: params.id,
+        id,
         family: {
           tenantId,
         },
@@ -67,9 +68,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const auth = getAuthFromRequest(request);
     if (!auth) {
       return NextResponse.json(
@@ -89,7 +91,7 @@ export async function PUT(
     // Verify child belongs to user's family
     const child = await db.child.findFirst({
       where: {
-        id: params.id,
+        id,
         family: {
           userId: auth.userId,
           tenantId,
@@ -108,7 +110,7 @@ export async function PUT(
     const validated = updateChildSchema.parse(body);
 
     const updated = await db.child.update({
-      where: { id: params.id },
+      where: { id },
       data: validated,
     });
 
@@ -131,9 +133,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const auth = getAuthFromRequest(request);
     if (!auth) {
       return NextResponse.json(
@@ -153,7 +156,7 @@ export async function DELETE(
     // Verify child belongs to user's family
     const child = await db.child.findFirst({
       where: {
-        id: params.id,
+        id,
         family: {
           userId: auth.userId,
           tenantId,
@@ -169,7 +172,7 @@ export async function DELETE(
     }
 
     await db.child.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Child deleted' });

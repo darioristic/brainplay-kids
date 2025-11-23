@@ -6,14 +6,15 @@ export default async function TenantLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { subdomain: string };
+  params: Promise<{ subdomain: string }>;
 }) {
+  const { subdomain } = await params;
   // Validate subdomain parameter
-  if (!params.subdomain || typeof params.subdomain !== 'string' || params.subdomain.trim() === '') {
+  if (!subdomain || typeof subdomain !== 'string' || subdomain.trim() === '') {
     notFound();
   }
 
-  const tenant = await getTenantFromSubdomain(params.subdomain);
+  const tenant = await getTenantFromSubdomain(subdomain);
 
   if (!tenant || !tenant.active) {
     notFound();

@@ -10,9 +10,10 @@ const submitAnswerSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const tenantId = getTenantIdFromRequest(request);
     if (!tenantId) {
       return NextResponse.json(
@@ -26,21 +27,17 @@ export async function POST(
 
     // Get session
     const session = await db.gameSession.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         child: {
           include: {
-            family: {
-              where: {
-                tenantId,
-              },
-            },
+            family: true,
           },
         },
       },
     });
 
-    if (!session || !session.child.family) {
+    if (!session || !session.child.family || session.child.family.tenantId !== tenantId) {
       return NextResponse.json(
         { error: 'Session not found' },
         { status: 404 }
@@ -52,7 +49,7 @@ export async function POST(
 
     // Update session
     const updated = await db.gameSession.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         userAnswer: validated.answer,
         isCorrect,

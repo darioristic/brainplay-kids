@@ -28,6 +28,10 @@ export default function GameSessionPage() {
   const [error, setError] = useState<string | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
 
+  if (!params) {
+    return <div>Loading...</div>;
+  }
+
   const childId = params.childId as string;
   const gameId = params.gameId as string; // This is gameModuleId
   const subdomain = params.subdomain as string;

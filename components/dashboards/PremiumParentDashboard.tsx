@@ -42,7 +42,7 @@ import {
   Zap,
   Star,
 } from "lucide-react";
-import { ChildProfile, getAgeGroup, AgeGroup } from "../types";
+import { ChildProfile, getAgeGroup, AgeGroup } from "@/types";
 import { AddChildModal } from "../AddChildModal";
 import { ChildSettingsModal } from "../ChildSettingsModal";
 import { Button } from "../ui/Button";

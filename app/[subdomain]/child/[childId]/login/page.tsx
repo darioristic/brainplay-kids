@@ -27,6 +27,10 @@ export default function ChildLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  if (!params) {
+    return <div>Loading...</div>;
+  }
+
   const subdomain = params.subdomain as string;
   const childId = params.childId as string;
 

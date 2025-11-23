@@ -70,6 +70,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   }, [familyName, subdomain]);
 
   const nextStep = () => {
+    // Clear errors when moving to next step
+    setError(null);
     setAnimating(true);
     setTimeout(() => {
       setCurrentStep((prev) => prev + 1);
@@ -253,6 +255,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       console.error("Onboarding error:", err);
       console.error("Error response:", err.response?.data);
       console.error("Error details:", err.response?.data?.details);
+      console.error("Error status:", err.response?.status);
+      console.error("Error message:", err.message);
       
       // If user already exists, try to log them in automatically
       if (err.response?.data?.error === "User already exists") {
@@ -777,6 +781,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       </div>
     </div>
   );
+
 
   // --- Step 6: Ready ---
   const renderReady = () => (
