@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorMessage } from "@/components/ErrorMessage";
-import { ArrowRight, Lock, Mail, Shield } from "lucide-react";
+import { ArrowRight, Lock, Mail, Shield, AlertCircle } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -15,6 +15,21 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminCheck, setAdminCheck] = useState<{ exists: boolean; message?: string } | null>(null);
+
+  // Check if admin user exists on mount
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const response = await apiClient.get("/api/auth/admin-login/check");
+        setAdminCheck(response.data);
+      } catch (err) {
+        // Silently fail - don't show error for check
+        console.error("Failed to check admin user:", err);
+      }
+    };
+    checkAdmin();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,11 +60,26 @@ export default function AdminLoginPage() {
       router.push("/admin");
     } catch (err: any) {
       console.error("Admin login failed:", err);
-      setError(
-        err.response?.data?.error ||
-          err.message ||
-          "Invalid email or password. Please try again."
-      );
+      console.error("Error response:", err.response?.data);
+      
+      let errorMessage = "Invalid email or password. Please try again.";
+      
+      if (err.response?.data) {
+        if (err.response.data.error) {
+          errorMessage = err.response.data.error;
+        }
+        if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        }
+        // Show details in development
+        if (process.env.NODE_ENV === 'development' && err.response.data.details) {
+          errorMessage += `\n\nDetails: ${err.response.data.details}`;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -71,6 +101,21 @@ export default function AdminLoginPage() {
               Access the platform management dashboard
             </p>
           </div>
+
+          {/* Admin Check Message */}
+          {adminCheck && !adminCheck.exists && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-yellow-800">Admin User Not Found</p>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {adminCheck.message || "Please run: npm run db:seed"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
