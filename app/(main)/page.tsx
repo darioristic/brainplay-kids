@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Star, Shield, Brain, Sparkles, Users, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { buildSubdomainUrl } from '@/lib/url-utils';
 
 export default function LandingPage() {
   const [familyName, setFamilyName] = useState('');
@@ -15,7 +16,7 @@ export default function LandingPage() {
     if (familyName.trim()) {
       // Redirect to subdomain
       const subdomain = familyName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-      window.location.href = `http://${subdomain}.localhost:3000`;
+      window.location.href = buildSubdomainUrl(subdomain);
     }
   };
 
@@ -48,7 +49,7 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-4">
           <Link 
-            href="/admin"
+            href="/admin/login"
             className="hidden md:flex text-sm font-bold text-scandi-stone hover:text-scandi-chocolate transition px-4 py-2 rounded-full hover:bg-scandi-oat"
           >
             Admin

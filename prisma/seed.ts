@@ -1,8 +1,130 @@
-import { PrismaClient, GameCategory, Difficulty } from '@prisma/client';
+import { PrismaClient, GameCategory, Difficulty, AgeGroup } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+// Helper functions for hashing (since we can't import from lib in seed)
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 10);
+}
+
+async function hashPIN(pin: string): Promise<string> {
+  return bcrypt.hash(pin, 8);
+}
 
 const prisma = new PrismaClient();
 
 async function main() {
+  console.log('Starting database seed...');
+
+  // 1. Create Admin User
+  console.log('Creating admin user...');
+  const adminEmail = 'admin@brainplaykids.com';
+  const adminPassword = await hashPassword('admin123');
+  
+  const adminUser = await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      password: adminPassword,
+      name: 'Admin User',
+      role: 'ADMIN',
+    },
+    create: {
+      email: adminEmail,
+      password: adminPassword,
+      name: 'Admin User',
+      role: 'ADMIN',
+    },
+  });
+  console.log(`✓ Admin user created: ${adminEmail} / admin123`);
+
+  // 2. Create Test Tenant and Family
+  console.log('Creating test tenant and family...');
+  const testSubdomain = 'test-family';
+  const testTenant = await prisma.tenant.upsert({
+    where: { subdomain: testSubdomain },
+    update: {
+      name: 'Test Family',
+      active: true,
+    },
+    create: {
+      subdomain: testSubdomain,
+      name: 'Test Family',
+      active: true,
+      emoji: '🏠',
+    },
+  });
+
+  // 3. Create Test Parent User
+  console.log('Creating test parent user...');
+  const parentEmail = 'parent@test.com';
+  const parentPassword = await hashPassword('parent123');
+  
+  const parentUser = await prisma.user.upsert({
+    where: { email: parentEmail },
+    update: {
+      password: parentPassword,
+      name: 'Test Parent',
+      role: 'PARENT',
+    },
+    create: {
+      email: parentEmail,
+      password: parentPassword,
+      name: 'Test Parent',
+      role: 'PARENT',
+    },
+  });
+
+  // 4. Create Family
+  const testFamily = await prisma.family.upsert({
+    where: {
+      tenantId_userId: {
+        tenantId: testTenant.id,
+        userId: parentUser.id,
+      },
+    },
+    update: {
+      name: 'Test Family',
+    },
+    create: {
+      tenantId: testTenant.id,
+      userId: parentUser.id,
+      name: 'Test Family',
+    },
+  });
+  console.log(`✓ Test family created: ${testSubdomain}.brainplaykids.com`);
+  console.log(`✓ Parent user created: ${parentEmail} / parent123`);
+
+  // 5. Create Test Child
+  console.log('Creating test child...');
+  const childPIN = await hashPIN('1234');
+  const testChild = await prisma.child.upsert({
+    where: {
+      id: 'test-child-1',
+    },
+    update: {
+      name: 'Test Child',
+      age: 7,
+      pin: childPIN,
+      avatarUrl: 'https://api.dicebear.com/9.x/avataaars/svg?seed=TestChild',
+      buddy: AgeGroup.DISCOVERY,
+      preferredDifficulty: Difficulty.Medium,
+      themePreference: AgeGroup.DISCOVERY,
+    },
+    create: {
+      id: 'test-child-1',
+      familyId: testFamily.id,
+      name: 'Test Child',
+      age: 7,
+      pin: childPIN,
+      avatarUrl: 'https://api.dicebear.com/9.x/avataaars/svg?seed=TestChild',
+      buddy: AgeGroup.DISCOVERY,
+      preferredDifficulty: Difficulty.Medium,
+      themePreference: AgeGroup.DISCOVERY,
+      points: 0,
+    },
+  });
+  console.log(`✓ Test child created: Test Child / PIN: 1234`);
+
+  // 6. Seed Game Modules
   console.log('Seeding game modules...');
 
   const gameModules = [
@@ -175,7 +297,20 @@ async function main() {
     }
   }
 
-  console.log(`Seeded ${gameModules.length} game modules`);
+  console.log(`✓ Seeded ${gameModules.length} game modules`);
+
+  console.log('\n=== Seed Summary ===');
+  console.log('Admin User:');
+  console.log(`  Email: ${adminEmail}`);
+  console.log(`  Password: admin123`);
+  console.log('\nTest Parent User:');
+  console.log(`  Email: ${parentEmail}`);
+  console.log(`  Password: parent123`);
+  console.log(`  Subdomain: ${testSubdomain}.brainplaykids.com`);
+  console.log('\nTest Child:');
+  console.log(`  Name: ${testChild.name}`);
+  console.log(`  PIN: 1234`);
+  console.log('\n✅ Database seeding completed successfully!');
 }
 
 main()

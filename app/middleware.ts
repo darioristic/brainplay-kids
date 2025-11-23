@@ -29,6 +29,9 @@ export async function middleware(request: NextRequest) {
     if (!tenant || !tenant.active) {
       // Invalid subdomain - redirect to main domain
       const url = request.nextUrl.clone();
+      // Use https for production, http for localhost
+      const isProduction = !hostname.includes('localhost');
+      url.protocol = isProduction ? 'https:' : 'http:';
       url.host = MAIN_DOMAIN;
       url.pathname = '/';
       return NextResponse.redirect(url);

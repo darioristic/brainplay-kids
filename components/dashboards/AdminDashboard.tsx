@@ -22,10 +22,13 @@ import {
   Filter,
   Download,
   RefreshCw,
+  LogOut,
 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorMessage } from "@/components/ErrorMessage";
+import { useAuthStore } from "@/stores/authStore";
+import { useRouter } from "next/navigation";
 import clsx from "clsx";
 
 interface Tenant {
@@ -58,6 +61,8 @@ interface FeatureToggle {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter();
+  const { logout, user } = useAuthStore();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [featureToggles, setFeatureToggles] = useState<FeatureToggle[]>([]);
@@ -66,6 +71,11 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"overview" | "tenants" | "features">("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddTenant, setShowAddTenant] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/admin/login');
+  };
 
   useEffect(() => {
     fetchData();
@@ -179,6 +189,11 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {user && (
+                <div className="text-sm text-gray-600 mr-2">
+                  {user.name} ({user.email})
+                </div>
+              )}
               <button
                 onClick={fetchData}
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
@@ -189,6 +204,13 @@ export default function AdminDashboard() {
               <button className="px-4 py-2 bg-scandi-moss text-white rounded-lg font-medium hover:bg-scandi-moss/90 transition flex items-center gap-2">
                 <Download size={16} />
                 Export
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition flex items-center gap-2"
+              >
+                <LogOut size={16} />
+                Logout
               </button>
             </div>
           </div>
