@@ -6,6 +6,8 @@ Ovaj vodič objašnjava kako da konfigurišete aplikaciju za rad na production d
 
 U Vercel Dashboard-u, postavite sledeće environment varijable:
 
+**Za detaljne instrukcije o postavljanju DATABASE_URL, pogledajte [VERCEL_DATABASE_SETUP.md](./VERCEL_DATABASE_SETUP.md)**
+
 ### Obavezne Varijable
 
 ```bash

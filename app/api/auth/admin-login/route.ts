@@ -25,6 +25,19 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validated = adminLoginSchema.parse(body);
 
+    // Check if DATABASE_URL is set
+    if (!process.env.DATABASE_URL) {
+      console.error('DATABASE_URL is not set');
+      return NextResponse.json(
+        { 
+          error: 'Database configuration error',
+          message: 'DATABASE_URL environment variable is not set. Please configure your database connection.',
+          hint: 'Check your .env.local file or environment variables'
+        },
+        { status: 500 }
+      );
+    }
+
     // Find user
     let user;
     try {
@@ -33,8 +46,21 @@ export async function POST(request: NextRequest) {
       });
     } catch (dbError) {
       console.error('Database error when finding user:', dbError);
+      const errorMessage = dbError instanceof Error ? dbError.message : 'Unknown database error';
+      
+      // Provide more helpful error messages
+      let userFriendlyMessage = 'Database connection error. Please try again.';
+      if (errorMessage.includes('P1001') || errorMessage.includes('Can\'t reach database')) {
+        userFriendlyMessage = 'Cannot connect to database. Please check if the database is running and DATABASE_URL is correct.';
+      } else if (errorMessage.includes('P1000') || errorMessage.includes('Authentication failed')) {
+        userFriendlyMessage = 'Database authentication failed. Please check your DATABASE_URL credentials.';
+      }
+      
       return NextResponse.json(
-        { error: 'Database connection error. Please try again.' },
+        { 
+          error: userFriendlyMessage,
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+        },
         { status: 500 }
       );
     }

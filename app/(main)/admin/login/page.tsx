@@ -16,19 +16,30 @@ export default function AdminLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [adminCheck, setAdminCheck] = useState<{ exists: boolean; message?: string } | null>(null);
+  const [dbStatus, setDbStatus] = useState<{ status: string; message?: string } | null>(null);
 
-  // Check if admin user exists on mount
+  // Check database connection and admin user on mount
   useEffect(() => {
-    const checkAdmin = async () => {
+    const checkDatabase = async () => {
       try {
-        const response = await apiClient.get("/api/auth/admin-login/check");
-        setAdminCheck(response.data);
+        const dbResponse = await apiClient.get("/api/health/db");
+        setDbStatus(dbResponse.data);
+        
+        // Only check admin if database is connected
+        if (dbResponse.data.connection) {
+          const adminResponse = await apiClient.get("/api/auth/admin-login/check");
+          setAdminCheck(adminResponse.data);
+        }
       } catch (err) {
         // Silently fail - don't show error for check
-        console.error("Failed to check admin user:", err);
+        console.error("Failed to check database:", err);
+        setDbStatus({
+          status: 'error',
+          message: 'Failed to check database connection'
+        });
       }
     };
-    checkAdmin();
+    checkDatabase();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,8 +113,28 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
+          {/* Database Connection Status */}
+          {dbStatus && dbStatus.status === 'error' && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-red-800">Database Connection Error</p>
+                  <p className="text-sm text-red-700 mt-1">
+                    {dbStatus.message || "Cannot connect to database. Please check your DATABASE_URL environment variable."}
+                  </p>
+                  <div className="mt-2 text-xs text-red-600 space-y-1">
+                    <p>• Check if DATABASE_URL is set in your environment variables</p>
+                    <p>• Verify database is running (if local: docker-compose up -d)</p>
+                    <p>• Check database credentials in DATABASE_URL</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Admin Check Message */}
-          {adminCheck && !adminCheck.exists && (
+          {dbStatus?.status === 'ok' && adminCheck && !adminCheck.exists && (
             <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
               <div className="flex items-start gap-3">
                 <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
