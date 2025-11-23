@@ -1,0 +1,8 @@
+{
+  "name": "BrainPlay Kids",
+  "description": "A multitenant AI-powered educational platform for families featuring the Owl Assistant.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

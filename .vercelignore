@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Testing
+tests/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+coverage/
+.nyc_output/
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.log
+.DS_Store
+
+# Documentation
+*.md
+!README.md
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts (Vercel handles this)
+.next/
+out/
+dist/
+
+# Playwright
+playwright-report/
+test-results/
+
+# Analysis
+.analyze/
+

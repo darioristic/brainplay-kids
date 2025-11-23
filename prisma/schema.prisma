@@ -1,0 +1,176 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AgeGroup {
+  EARLY
+  DISCOVERY
+  JUNIOR
+}
+
+enum GameCategory {
+  LOGIC
+  MATH
+  MEMORY
+  CREATIVITY
+  LANGUAGE
+}
+
+enum Difficulty {
+  Easy
+  Medium
+  Hard
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  subdomain String   @unique
+  name      String
+  emoji     String?  // Emoji branding
+  settings  Json?    // Tenant-specific settings
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  families Family[]
+
+  @@index([subdomain])
+  @@map("tenants")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed password
+  name      String
+  role      String   @default("PARENT") // PARENT or ADMIN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  families Family[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Family {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  children Child[]
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@map("families")
+}
+
+model Child {
+  id                String    @id @default(cuid())
+  familyId          String
+  name              String
+  age               Int
+  pin               String    // Hashed PIN
+  avatarUrl         String
+  points            Int        @default(0)
+  buddy             AgeGroup?  // Preferred Owl Persona
+  preferredDifficulty Difficulty?
+  themePreference   AgeGroup?
+  settings          Json?      // Child-specific settings
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  gameSessions  GameSession[]
+  gameProgress  GameProgress[]
+  interactions  InteractionLog[]
+
+  @@index([familyId])
+  @@map("children")
+}
+
+model GameModule {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  category    GameCategory
+  difficulty  Difficulty
+  minAge      Int
+  rewardPoints Int         @default(50)
+  locked      Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  gameSessions GameSession[]
+  gameProgress GameProgress[]
+
+  @@index([category, difficulty])
+  @@map("game_modules")
+}
+
+model GameSession {
+  id          String   @id @default(cuid())
+  childId     String
+  gameModuleId String
+  question    String
+  correctAnswer String
+  userAnswer  String?
+  isCorrect   Boolean?
+  points      Int      @default(0)
+  completed   Boolean  @default(false)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  child      Child      @relation(fields: [childId], references: [id], onDelete: Cascade)
+  gameModule GameModule @relation(fields: [gameModuleId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@index([gameModuleId])
+  @@map("game_sessions")
+}
+
+model GameProgress {
+  id          String   @id @default(cuid())
+  childId     String
+  gameModuleId String
+  progress    Int      @default(0) // 0-100
+  lastPlayed  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  child      Child      @relation(fields: [childId], references: [id], onDelete: Cascade)
+  gameModule GameModule @relation(fields: [gameModuleId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, gameModuleId])
+  @@index([childId])
+  @@map("game_progress")
+}
+
+model InteractionLog {
+  id        String   @id @default(cuid())
+  childId   String
+  activity  String
+  details   Json?
+  timestamp DateTime @default(now())
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@index([timestamp])
+  @@map("interaction_logs")
+}
+
