@@ -2,6 +2,24 @@
 
 Vidim da si već dodao Supabase environment variables u Vercel. Sada treba da dodaš `DATABASE_URL`.
 
+## 🚀 Brza metoda - Preko CLI skripte
+
+Najlakše je da koristiš automatsku skriptu:
+
+```bash
+./scripts/setup-vercel-database.sh
+```
+
+Skripta će te pitati za:
+
+- Database password (iz Supabase Dashboard-a)
+- Region (ili će koristiti default)
+- Tip konekcije (pooler ili direct)
+
+I automatski će postaviti DATABASE_URL u Vercel za sve environment-e!
+
+## 📝 Ručna metoda
+
 ## Korak 1: Dobij Database Password
 
 1. Idite na [Supabase Dashboard](https://app.supabase.com/)
@@ -20,11 +38,13 @@ postgresql://postgres.vaxwew-saqjis-6hazsy:[Tvoj_Database_Password]@aws-0-[REGIO
 ```
 
 **Primer:**
+
 ```
 postgresql://postgres.vaxwew-saqjis-6hazsy:mojaLozinka123@aws-0-us-east-1.pooler.supabase.com:6543/postgres
 ```
 
 **Kako pronaći REGION:**
+
 - U Supabase Dashboard → Settings → Database
 - Pogledaj "Connection string" sekciju - region je deo hostname-a
 - Obično je: `us-east-1`, `eu-west-1`, `ap-southeast-1`, itd.
@@ -60,18 +80,20 @@ postgresql://postgres.vaxwew-saqjis-6hazsy:mojaLozinka123@aws-0-us-east-1.pooler
 ## Troubleshooting
 
 **Ako dobiješ "Authentication failed":**
+
 - Proveri da li si koristio **Database Password**, a ne SUPABASE_SERVICE_ROLE_KEY
 - Proveri da li je password ispravno kopiran (bez razmaka)
 
 **Ako dobiješ "Can't reach database":**
+
 - Proveri da li si koristio pooler connection (port 6543)
 - Proveri da li je region ispravan u hostname-u
 
 **Ako ne znaš region:**
+
 - U Supabase Dashboard → Settings → Database
 - Pogledaj "Connection string" sekciju
 - Ili koristi direct connection (port 5432) umesto pooler-a:
   ```
   postgresql://postgres.vaxwew-saqjis-6hazsy:[PASSWORD]@db.vaxwew-saqjis-6hazsy.supabase.co:5432/postgres
   ```
-

@@ -163,6 +163,10 @@ See `.env.example` for required environment variables:
 
 Za detaljne instrukcije o deployment-u na Vercel, pogledajte [vercel-deploy.md](./vercel-deploy.md).
 
+## Database Setup
+
+Za brzu postavku DATABASE_URL na Vercel-u, pogledajte [SETUP_DATABASE.md](./SETUP_DATABASE.md).
+
 ### Quick Deploy to Vercel
 
 ```bash
